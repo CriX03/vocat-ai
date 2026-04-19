@@ -9,20 +9,15 @@ import {
   chatResponseSchema,
   type ChatRequestInput,
 } from '@/lib/chat-contract';
+import {
+  CHAT_LOADING_MESSAGES,
+  CHAT_REQUEST_ERROR_MESSAGE,
+} from '@/lib/chat-ui';
 import { useVocational } from '@/context/VocationalContext';
 import type { ChatResponse } from '@/types/chat';
 import TestResults from '@/components/Dashboard/TestResults';
 
 const { Text } = Typography;
-
-const LOADING_MESSAGES = [
-  'Analizando tus talentos...',
-  'Sincronizando intereses...',
-  'Calculando perfil RIASEC...',
-  'Descubriendo tu vocación...'
-];
-
-const REQUEST_ERROR_MESSAGE = 'Ocurrió un error de conexión. Por favor reintenta.';
 
 function parseRequestPayload(body: BodyInit | null | undefined): ChatRequestInput | null {
   if (typeof body !== 'string') return null;
@@ -71,7 +66,7 @@ async function requestNonStreamingFallback(payload: ChatRequestInput): Promise<C
 export default function ChatWindow() {
   const { state, dispatch } = useVocational();
   const [inputValue, setInputValue] = useState('');
-  const [loadingText, setLoadingText] = useState(LOADING_MESSAGES[0]);
+  const [loadingText, setLoadingText] = useState(CHAT_LOADING_MESSAGES[0]);
   const [uiError, setUiError] = useState<string | null>(null);
   const [isFallbackLoading, setIsFallbackLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -97,7 +92,7 @@ export default function ChatWindow() {
     if (!payload) {
       if (streamResponse) return streamResponse;
 
-      throw new Error(REQUEST_ERROR_MESSAGE);
+      throw new Error(CHAT_REQUEST_ERROR_MESSAGE);
     }
 
     const fallbackObject = await requestNonStreamingFallback(payload);
@@ -108,7 +103,7 @@ export default function ChatWindow() {
 
     if (streamResponse) return streamResponse;
 
-    throw new Error(REQUEST_ERROR_MESSAGE);
+    throw new Error(CHAT_REQUEST_ERROR_MESSAGE);
   };
 
   // Hook del Vercel AI SDK para streaming progresivo de JSON (Objetos)
@@ -117,7 +112,7 @@ export default function ChatWindow() {
     schema: chatResponseSchema,
     fetch: fetchWithFallback,
     onError: () => {
-      setUiError(REQUEST_ERROR_MESSAGE);
+      setUiError(CHAT_REQUEST_ERROR_MESSAGE);
     },
     onFinish: async ({ object: finalObject, error: err }) => {
       if (finalObject && !err) {
@@ -132,7 +127,7 @@ export default function ChatWindow() {
 
       const payload = lastPayloadRef.current;
       if (!payload) {
-        setUiError(REQUEST_ERROR_MESSAGE);
+        setUiError(CHAT_REQUEST_ERROR_MESSAGE);
         return;
       }
 
@@ -150,7 +145,7 @@ export default function ChatWindow() {
         return;
       }
 
-      setUiError(REQUEST_ERROR_MESSAGE);
+      setUiError(CHAT_REQUEST_ERROR_MESSAGE);
     },
   });
 
@@ -166,9 +161,9 @@ export default function ChatWindow() {
     if (!isRequestLoading) return;
     const interval = setInterval(() => {
       setLoadingText((prev) => {
-        const currentIndex = LOADING_MESSAGES.indexOf(prev);
-        const nextIndex = (currentIndex + 1) % LOADING_MESSAGES.length;
-        return LOADING_MESSAGES[nextIndex];
+        const currentIndex = CHAT_LOADING_MESSAGES.indexOf(prev);
+        const nextIndex = (currentIndex + 1) % CHAT_LOADING_MESSAGES.length;
+        return CHAT_LOADING_MESSAGES[nextIndex];
       });
     }, 2000);
     return () => clearInterval(interval);
@@ -306,7 +301,7 @@ export default function ChatWindow() {
         {/* Placeholder para error */}
         {(uiError || error) && (
           <div style={{ textAlign: 'center', marginTop: 16 }}>
-            <Text type="danger">{uiError || REQUEST_ERROR_MESSAGE}</Text>
+            <Text type="danger">{uiError || CHAT_REQUEST_ERROR_MESSAGE}</Text>
           </div>
         )}
 
