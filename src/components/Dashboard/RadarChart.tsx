@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useVocational } from '@/context/VocationalContext';
+import { getUICopyFromLanguage } from '@/lib/ui-copy';
 import { Spin } from 'antd';
 
 // Importación dinámica obligatoria para evitar errores de "document is not defined" (SSR)
@@ -14,14 +15,17 @@ const Radar = dynamic(() => import('@ant-design/plots').then((mod) => mod.Radar)
 export default function RiasecRadarChart() {
   const { state } = useVocational();
   const { riasecScores } = state;
+  const uiCopy = getUICopyFromLanguage(
+    typeof window === 'undefined' ? undefined : window.navigator.language
+  );
 
   const data = [
-    { category: 'Realista', score: riasecScores.R },
-    { category: 'Investigador', score: riasecScores.I },
-    { category: 'Artístico', score: riasecScores.A },
-    { category: 'Social', score: riasecScores.S },
-    { category: 'Emprendedor', score: riasecScores.E },
-    { category: 'Convencional', score: riasecScores.C },
+    { category: uiCopy.radarChart.categories.realista, score: riasecScores.R },
+    { category: uiCopy.radarChart.categories.investigador, score: riasecScores.I },
+    { category: uiCopy.radarChart.categories.artistico, score: riasecScores.A },
+    { category: uiCopy.radarChart.categories.social, score: riasecScores.S },
+    { category: uiCopy.radarChart.categories.emprendedor, score: riasecScores.E },
+    { category: uiCopy.radarChart.categories.convencional, score: riasecScores.C },
   ];
 
   // Identificar si el test acaba de empezar (todo en cero)
@@ -38,7 +42,7 @@ export default function RiasecRadarChart() {
     yField: 'score',
     meta: {
       score: {
-        alias: 'Puntos RIASEC',
+        alias: uiCopy.radarChart.scoreAlias,
         min: 0,
         max: maxDomain,
       },

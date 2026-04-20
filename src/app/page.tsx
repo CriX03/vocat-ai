@@ -6,6 +6,7 @@ import {
   RobotOutlined,
   RadarChartOutlined,
 } from '@ant-design/icons';
+import { getUICopyFromLanguage } from '@/lib/ui-copy';
 
 const { Content, Sider } = Layout;
 const { Title, Text } = Typography;
@@ -15,6 +16,9 @@ import RiasecRadarChart from '@/components/Dashboard/RadarChart';
 
 export default function Home() {
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const uiCopy = getUICopyFromLanguage(
+    typeof window === 'undefined' ? undefined : window.navigator.language
+  );
 
   return (
     <Layout style={{ height: '100vh', overflow: 'hidden' }}>
@@ -58,7 +62,7 @@ export default function Home() {
                 VocatAI
               </Title>
               <Text style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                Orientación Vocacional Inteligente
+                {uiCopy.home.appSubtitle}
               </Text>
             </div>
           </div>
@@ -72,7 +76,7 @@ export default function Home() {
             onClick={() => setDrawerVisible(true)}
             style={{ fontWeight: 500 }}
           >
-            Mi Perfil
+            {uiCopy.home.mobileProfileButton}
           </Button>
         </div>
 
@@ -119,12 +123,12 @@ export default function Home() {
             <RadarChartOutlined style={{ fontSize: 20, color: '#00CED1' }} />
           </div>
           <div>
-            <Title level={5} style={{ margin: 0, color: 'var(--foreground)' }}>
-              Perfil RIASEC
-            </Title>
-            <Text style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-              Tu progreso en tiempo real
-            </Text>
+              <Title level={5} style={{ margin: 0, color: 'var(--foreground)' }}>
+                {uiCopy.home.dashboardTitle}
+              </Title>
+              <Text style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                {uiCopy.home.dashboardSubtitle}
+              </Text>
           </div>
         </div>
 
@@ -145,7 +149,7 @@ export default function Home() {
           >
             <RiasecRadarChart />
             <Text style={{ color: 'var(--text-secondary)', marginTop: 0, fontSize: 13, textAlign: 'center' }}>
-              El gráfico crecerá a medida que respondas las preguntas
+              {uiCopy.home.radarHintDesktop}
             </Text>
           </div>
         </div>
@@ -153,7 +157,7 @@ export default function Home() {
 
       {/* ── Drawer Móvil (Bottom Sheet) ── */}
       <Drawer
-        title={<span style={{ color: 'var(--foreground)' }}>Tu Perfil RIASEC</span>}
+        title={<span style={{ color: 'var(--foreground)' }}>{uiCopy.home.drawerTitle}</span>}
         placement="bottom"
         size="large"
         onClose={() => setDrawerVisible(false)}
@@ -180,7 +184,7 @@ export default function Home() {
         >
           <RiasecRadarChart />
           <Text style={{ color: 'var(--text-secondary)', marginTop: 16, fontSize: 13, textAlign: 'center' }}>
-            Tu perfil se actualiza en tiempo real
+            {uiCopy.home.radarHintMobile}
           </Text>
         </div>
         )}

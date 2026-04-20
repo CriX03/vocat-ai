@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import Script from 'next/script';
 import AntdProvider from '@/components/AntdProvider';
 import { VocationalProvider } from '@/context/VocationalContext';
+import { getUICopy } from '@/lib/ui-copy';
 import './globals.css';
 
 const geistSans = Geist({
@@ -15,10 +16,11 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
+const uiCopy = getUICopy('es');
+
 export const metadata: Metadata = {
-  title: 'VocatAI — Orientación Vocacional Inteligente',
-  description:
-    'Plataforma híbrida de orientación vocacional impulsada por IA. Descubre tu perfil RIASEC de forma interactiva.',
+  title: uiCopy.layoutMetadataTitle,
+  description: uiCopy.layoutMetadataDescription,
 };
 
 export default function RootLayout({

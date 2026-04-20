@@ -4,6 +4,7 @@ import { Result, Button, Typography, Tag, Space } from 'antd';
 import { RedoOutlined, TrophyOutlined } from '@ant-design/icons';
 import { useVocational } from '@/context/VocationalContext';
 import { riasecDictionary } from '@/lib/riasec-dictionary';
+import { getUICopyFromLanguage } from '@/lib/ui-copy';
 import type { RiasecCategory } from '@/types/chat';
 
 const { Text, Paragraph, Title } = Typography;
@@ -11,6 +12,9 @@ const { Text, Paragraph, Title } = Typography;
 export default function TestResults() {
   const { state, dispatch } = useVocational();
   const { riasecScores } = state;
+  const uiCopy = getUICopyFromLanguage(
+    typeof window === 'undefined' ? undefined : window.navigator.language
+  );
 
   // Determinar los 2 perfiles dominantes (los de mayor puntaje)
   const entries = Object.entries(riasecScores) as [Exclude<RiasecCategory, 'NONE'>, number][];
@@ -31,11 +35,11 @@ export default function TestResults() {
     return (
       <Result
         status="warning"
-        title="Sin perfil definido"
-        subTitle="El test ha finalizado pero no se detectó un perfil RIASEC claro. Intenta dar respuestas más detalladas en la próxima sesión."
+        title={uiCopy.testResults.noProfileTitle}
+        subTitle={uiCopy.testResults.noProfileSubtitle}
         extra={
           <Button type="primary" onClick={handleRestart} icon={<RedoOutlined />}>
-            Reiniciar Test
+            {uiCopy.testResults.restartButton}
           </Button>
         }
       />
@@ -54,18 +58,18 @@ export default function TestResults() {
         status="success"
         title={
           <Title level={3} style={{ color: 'var(--foreground)' }}>
-            ¡Perfil Vocacional Encontrado!
+            {uiCopy.testResults.profileFoundTitle}
           </Title>
         }
         subTitle={
           <Text style={{ color: 'var(--text-secondary)' }}>
-            Basado en tus respuestas, este es tu perfil dominante.
+            {uiCopy.testResults.profileFoundSubtitle}
           </Text>
         }
         style={{ padding: '32px 0 16px' }}
         extra={[
           <Button key="restart" type="primary" onClick={handleRestart} icon={<RedoOutlined />}>
-            Reiniciar y probar de nuevo
+            {uiCopy.testResults.restartAndTryAgainButton}
           </Button>,
         ]}
       >
@@ -73,7 +77,8 @@ export default function TestResults() {
           
           <Paragraph>
             <Text style={{ fontSize: 16, color: 'var(--foreground)' }}>
-              Tu perfil dominante es: <strong style={{ color: 'var(--primary)' }}>{primaryProfile.title}</strong>
+              {uiCopy.testResults.dominantProfileLabel}{' '}
+              <strong style={{ color: 'var(--primary)' }}>{primaryProfile.title}</strong>
             </Text>
           </Paragraph>
           <Paragraph style={{ color: 'var(--text-secondary)' }}>
@@ -83,7 +88,7 @@ export default function TestResults() {
           {primaryProfile.descriptions.length > 0 && (
             <div style={{ marginTop: 16 }}>
               <Text strong style={{ color: 'var(--foreground)', display: 'block', marginBottom: 8 }}>
-                Rasgos clave de tu perfil:
+                {uiCopy.testResults.keyTraitsLabel}
               </Text>
               <Space direction="vertical" size={6} style={{ width: '100%' }}>
                 {primaryProfile.descriptions.slice(0, 2).map((item) => (
@@ -97,7 +102,7 @@ export default function TestResults() {
 
           <div style={{ marginTop: 24 }}>
             <Text strong style={{ color: 'var(--foreground)', display: 'block', marginBottom: 12 }}>
-              Top 3 Carreras Recomendadas (Principal):
+              {uiCopy.testResults.topCareersLabel}
             </Text>
             <Space direction="vertical" size={12} style={{ width: '100%' }}>
               {primaryCareerDetails.map((career) => (
@@ -124,7 +129,8 @@ export default function TestResults() {
           {secondary && secondaryProfile && (
             <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
               <Text style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: 8 }}>
-                Perfil secundario influyente: <strong>{secondaryProfile.title}</strong>
+                {uiCopy.testResults.secondaryProfileLabel}{' '}
+                <strong>{secondaryProfile.title}</strong>
               </Text>
               <Space direction="vertical" size={10} style={{ width: '100%' }}>
                 {secondaryCareerDetails.map((career) => (

@@ -1,4 +1,5 @@
-export type ChatLocale = 'es' | 'en';
+export type UILocale = 'es' | 'en';
+export type ChatLocale = UILocale;
 
 interface ChatUICopy {
   loadingMessages: string[];
@@ -11,7 +12,7 @@ interface ChatUICopy {
   finishedDescription: string;
 }
 
-const CHAT_UI_COPY: Record<ChatLocale, ChatUICopy> = {
+const CHAT_UI_COPY: Record<UILocale, ChatUICopy> = {
   es: {
     loadingMessages: [
       'Analizando tus talentos...',
@@ -48,7 +49,7 @@ const CHAT_UI_COPY: Record<ChatLocale, ChatUICopy> = {
   },
 };
 
-export function resolveChatLocale(language: string | undefined): ChatLocale {
+export function resolveChatLocale(language: string | undefined): UILocale {
   if (!language) return 'es';
 
   return language.toLowerCase().startsWith('en') ? 'en' : 'es';
