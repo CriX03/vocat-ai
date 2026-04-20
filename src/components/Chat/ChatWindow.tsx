@@ -10,7 +10,13 @@ import {
   type ChatRequestInput,
 } from '@/lib/chat-contract';
 import {
+  CHAT_EMPTY_STATE_DESCRIPTION,
+  CHAT_EMPTY_STATE_TITLE,
+  CHAT_FINISHED_DESCRIPTION,
+  CHAT_FINISHED_TITLE,
+  CHAT_INPUT_PLACEHOLDER,
   CHAT_LOADING_MESSAGES,
+  CHAT_PROGRESS_TITLE,
   CHAT_REQUEST_ERROR_MESSAGE,
 } from '@/lib/chat-ui';
 import { useVocational } from '@/context/VocationalContext';
@@ -220,7 +226,7 @@ export default function ChatWindow() {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
           <Text style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>
-            Progreso del Descubrimiento Vocacional
+            {CHAT_PROGRESS_TITLE}
           </Text>
           <Text style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>
             {Math.min(state.currentQuestion, MAX_QUESTIONS)} / {MAX_QUESTIONS}
@@ -248,8 +254,8 @@ export default function ChatWindow() {
           // Estado Vacío Inicial
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.6, gap: 16 }}>
             <RobotOutlined style={{ fontSize: 48, color: 'var(--primary)' }} />
-            <Text style={{ color: 'var(--foreground)', fontSize: 16 }}>¡Hola! Soy VocatAI</Text>
-            <Text style={{ color: 'var(--text-secondary)' }}>Tu asistente de orientación vocacional. Escríbeme para comenzar.</Text>
+            <Text style={{ color: 'var(--foreground)', fontSize: 16 }}>{CHAT_EMPTY_STATE_TITLE}</Text>
+            <Text style={{ color: 'var(--text-secondary)' }}>{CHAT_EMPTY_STATE_DESCRIPTION}</Text>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -326,14 +332,14 @@ export default function ChatWindow() {
       }}>
         {state.isTestFinished ? (
           <div style={{ textAlign: 'center', padding: '8px 0', background: 'var(--surface-elevated)', borderRadius: 12, border: '1px solid var(--border)' }}>
-            <Text style={{ color: 'var(--primary)', fontWeight: 600 }}>🌟 Test Vocacional Finalizado</Text>
+            <Text style={{ color: 'var(--primary)', fontWeight: 600 }}>{CHAT_FINISHED_TITLE}</Text>
             <br />
-            <Text style={{ color: 'var(--text-secondary)', fontSize: 13 }}>Revisa tus resultados en la parte superior o en el Radar.</Text>
+            <Text style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{CHAT_FINISHED_DESCRIPTION}</Text>
           </div>
         ) : (
           <Input
             size="large"
-            placeholder="Escribe tu mensaje..."
+            placeholder={CHAT_INPUT_PLACEHOLDER}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onPressEnter={handleSend}
