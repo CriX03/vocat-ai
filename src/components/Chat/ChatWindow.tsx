@@ -80,6 +80,7 @@ export default function ChatWindow() {
 
   const MAX_QUESTIONS = 15;
   const progressPercent = Math.min(100, Math.max(0, (state.currentQuestion / MAX_QUESTIONS) * 100));
+  const progressLabel = `${Math.round(progressPercent)}%`;
 
   const fetchWithFallback: typeof fetch = async (input, init) => {
     let streamResponse: Response | null = null;
@@ -229,7 +230,7 @@ export default function ChatWindow() {
             {uiCopy.progressTitle}
           </Text>
           <Text style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>
-            {Math.min(state.currentQuestion, MAX_QUESTIONS)} / {MAX_QUESTIONS}
+            {progressLabel}
           </Text>
         </div>
         <Progress 
