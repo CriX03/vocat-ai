@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Input, Button, Skeleton, Typography, Avatar, Progress } from 'antd';
 import { SendOutlined, RobotOutlined, UserOutlined } from '@ant-design/icons';
 import { experimental_useObject as useObject } from '@ai-sdk/react';
@@ -10,14 +10,8 @@ import {
   type ChatRequestInput,
 } from '@/lib/chat-contract';
 import {
-  CHAT_EMPTY_STATE_DESCRIPTION,
-  CHAT_EMPTY_STATE_TITLE,
-  CHAT_FINISHED_DESCRIPTION,
-  CHAT_FINISHED_TITLE,
-  CHAT_INPUT_PLACEHOLDER,
-  CHAT_LOADING_MESSAGES,
-  CHAT_PROGRESS_TITLE,
-  CHAT_REQUEST_ERROR_MESSAGE,
+  getChatUICopy,
+  resolveChatLocale,
 } from '@/lib/chat-ui';
 import { useVocational } from '@/context/VocationalContext';
 import type { ChatResponse } from '@/types/chat';
@@ -70,9 +64,15 @@ async function requestNonStreamingFallback(payload: ChatRequestInput): Promise<C
 }
 
 export default function ChatWindow() {
+  const locale = useMemo(
+    () => resolveChatLocale(typeof window === 'undefined' ? undefined : window.navigator.language),
+    []
+  );
+  const uiCopy = useMemo(() => getChatUICopy(locale), [locale]);
+
   const { state, dispatch } = useVocational();
   const [inputValue, setInputValue] = useState('');
-  const [loadingText, setLoadingText] = useState(CHAT_LOADING_MESSAGES[0]);
+  const [loadingText, setLoadingText] = useState(uiCopy.loadingMessages[0]);
   const [uiError, setUiError] = useState<string | null>(null);
   const [isFallbackLoading, setIsFallbackLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -98,7 +98,7 @@ export default function ChatWindow() {
     if (!payload) {
       if (streamResponse) return streamResponse;
 
-      throw new Error(CHAT_REQUEST_ERROR_MESSAGE);
+      throw new Error(uiCopy.requestErrorMessage);
     }
 
     const fallbackObject = await requestNonStreamingFallback(payload);
@@ -109,7 +109,7 @@ export default function ChatWindow() {
 
     if (streamResponse) return streamResponse;
 
-    throw new Error(CHAT_REQUEST_ERROR_MESSAGE);
+    throw new Error(uiCopy.requestErrorMessage);
   };
 
   // Hook del Vercel AI SDK para streaming progresivo de JSON (Objetos)
@@ -118,7 +118,7 @@ export default function ChatWindow() {
     schema: chatResponseSchema,
     fetch: fetchWithFallback,
     onError: () => {
-      setUiError(CHAT_REQUEST_ERROR_MESSAGE);
+      setUiError(uiCopy.requestErrorMessage);
     },
     onFinish: async ({ object: finalObject, error: err }) => {
       if (finalObject && !err) {
@@ -133,7 +133,7 @@ export default function ChatWindow() {
 
       const payload = lastPayloadRef.current;
       if (!payload) {
-        setUiError(CHAT_REQUEST_ERROR_MESSAGE);
+        setUiError(uiCopy.requestErrorMessage);
         return;
       }
 
@@ -151,7 +151,7 @@ export default function ChatWindow() {
         return;
       }
 
-      setUiError(CHAT_REQUEST_ERROR_MESSAGE);
+      setUiError(uiCopy.requestErrorMessage);
     },
   });
 
@@ -167,13 +167,13 @@ export default function ChatWindow() {
     if (!isRequestLoading) return;
     const interval = setInterval(() => {
       setLoadingText((prev) => {
-        const currentIndex = CHAT_LOADING_MESSAGES.indexOf(prev);
-        const nextIndex = (currentIndex + 1) % CHAT_LOADING_MESSAGES.length;
-        return CHAT_LOADING_MESSAGES[nextIndex];
+        const currentIndex = uiCopy.loadingMessages.indexOf(prev);
+        const nextIndex = (currentIndex + 1) % uiCopy.loadingMessages.length;
+        return uiCopy.loadingMessages[nextIndex];
       });
     }, 2000);
     return () => clearInterval(interval);
-  }, [isRequestLoading]);
+  }, [isRequestLoading, uiCopy.loadingMessages]);
 
   const handleSend = () => {
     const trimmed = inputValue.trim();
@@ -226,7 +226,7 @@ export default function ChatWindow() {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
           <Text style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>
-            {CHAT_PROGRESS_TITLE}
+            {uiCopy.progressTitle}
           </Text>
           <Text style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>
             {Math.min(state.currentQuestion, MAX_QUESTIONS)} / {MAX_QUESTIONS}
@@ -254,8 +254,8 @@ export default function ChatWindow() {
           // Estado Vacío Inicial
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.6, gap: 16 }}>
             <RobotOutlined style={{ fontSize: 48, color: 'var(--primary)' }} />
-            <Text style={{ color: 'var(--foreground)', fontSize: 16 }}>{CHAT_EMPTY_STATE_TITLE}</Text>
-            <Text style={{ color: 'var(--text-secondary)' }}>{CHAT_EMPTY_STATE_DESCRIPTION}</Text>
+            <Text style={{ color: 'var(--foreground)', fontSize: 16 }}>{uiCopy.emptyStateTitle}</Text>
+            <Text style={{ color: 'var(--text-secondary)' }}>{uiCopy.emptyStateDescription}</Text>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -307,7 +307,7 @@ export default function ChatWindow() {
         {/* Placeholder para error */}
         {(uiError || error) && (
           <div style={{ textAlign: 'center', marginTop: 16 }}>
-            <Text type="danger">{uiError || CHAT_REQUEST_ERROR_MESSAGE}</Text>
+            <Text type="danger">{uiError || uiCopy.requestErrorMessage}</Text>
           </div>
         )}
 
@@ -332,14 +332,14 @@ export default function ChatWindow() {
       }}>
         {state.isTestFinished ? (
           <div style={{ textAlign: 'center', padding: '8px 0', background: 'var(--surface-elevated)', borderRadius: 12, border: '1px solid var(--border)' }}>
-            <Text style={{ color: 'var(--primary)', fontWeight: 600 }}>{CHAT_FINISHED_TITLE}</Text>
+            <Text style={{ color: 'var(--primary)', fontWeight: 600 }}>{uiCopy.finishedTitle}</Text>
             <br />
-            <Text style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{CHAT_FINISHED_DESCRIPTION}</Text>
+            <Text style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{uiCopy.finishedDescription}</Text>
           </div>
         ) : (
           <Input
             size="large"
-            placeholder={CHAT_INPUT_PLACEHOLDER}
+            placeholder={uiCopy.inputPlaceholder}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onPressEnter={handleSend}

@@ -1,21 +1,59 @@
-export const CHAT_LOADING_MESSAGES = [
-  'Analizando tus talentos...',
-  'Sincronizando intereses...',
-  'Calculando perfil RIASEC...',
-  'Descubriendo tu vocación...',
-];
+export type ChatLocale = 'es' | 'en';
 
-export const CHAT_REQUEST_ERROR_MESSAGE =
-  'Ocurrió un error de conexión. Por favor reintenta.';
+interface ChatUICopy {
+  loadingMessages: string[];
+  requestErrorMessage: string;
+  progressTitle: string;
+  emptyStateTitle: string;
+  emptyStateDescription: string;
+  inputPlaceholder: string;
+  finishedTitle: string;
+  finishedDescription: string;
+}
 
-export const CHAT_PROGRESS_TITLE = 'Progreso del Descubrimiento Vocacional';
+const CHAT_UI_COPY: Record<ChatLocale, ChatUICopy> = {
+  es: {
+    loadingMessages: [
+      'Analizando tus talentos...',
+      'Sincronizando intereses...',
+      'Calculando perfil RIASEC...',
+      'Descubriendo tu vocación...',
+    ],
+    requestErrorMessage: 'Ocurrió un error de conexión. Por favor reintenta.',
+    progressTitle: 'Progreso del Descubrimiento Vocacional',
+    emptyStateTitle: '¡Hola! Soy VocatAI',
+    emptyStateDescription:
+      'Tu asistente de orientación vocacional. Escríbeme para comenzar.',
+    inputPlaceholder: 'Escribe tu mensaje...',
+    finishedTitle: '🌟 Test Vocacional Finalizado',
+    finishedDescription:
+      'Revisa tus resultados en la parte superior o en el Radar.',
+  },
+  en: {
+    loadingMessages: [
+      'Analyzing your strengths...',
+      'Syncing your interests...',
+      'Calculating your RIASEC profile...',
+      'Discovering your vocation...',
+    ],
+    requestErrorMessage: 'Connection error. Please try again.',
+    progressTitle: 'Vocational Discovery Progress',
+    emptyStateTitle: 'Hi! I am VocatAI',
+    emptyStateDescription:
+      'Your vocational guidance assistant. Send me a message to begin.',
+    inputPlaceholder: 'Type your message...',
+    finishedTitle: '🌟 Vocational Test Completed',
+    finishedDescription:
+      'Review your results above or on the radar panel.',
+  },
+};
 
-export const CHAT_EMPTY_STATE_TITLE = '¡Hola! Soy VocatAI';
-export const CHAT_EMPTY_STATE_DESCRIPTION =
-  'Tu asistente de orientación vocacional. Escríbeme para comenzar.';
+export function resolveChatLocale(language: string | undefined): ChatLocale {
+  if (!language) return 'es';
 
-export const CHAT_INPUT_PLACEHOLDER = 'Escribe tu mensaje...';
+  return language.toLowerCase().startsWith('en') ? 'en' : 'es';
+}
 
-export const CHAT_FINISHED_TITLE = '🌟 Test Vocacional Finalizado';
-export const CHAT_FINISHED_DESCRIPTION =
-  'Revisa tus resultados en la parte superior o en el Radar.';
+export function getChatUICopy(locale: ChatLocale): ChatUICopy {
+  return CHAT_UI_COPY[locale];
+}
