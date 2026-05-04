@@ -16,6 +16,7 @@ import {
 import { useVocational } from '@/context/VocationalContext';
 import type { ChatResponse } from '@/types/chat';
 import TestResults from '@/components/Dashboard/TestResults';
+import { useTheme } from '@/context/ThemeContext';
 
 const { Text } = Typography;
 
@@ -71,6 +72,7 @@ export default function ChatWindow() {
   const uiCopy = useMemo(() => getChatUICopy(locale), [locale]);
 
   const { state, dispatch } = useVocational();
+  const { theme } = useTheme();
   const [inputValue, setInputValue] = useState('');
   const [loadingText, setLoadingText] = useState(uiCopy.loadingMessages[0]);
   const [uiError, setUiError] = useState<string | null>(null);
@@ -157,6 +159,7 @@ export default function ChatWindow() {
   });
 
   const isRequestLoading = isLoading || isFallbackLoading;
+  const isDarkTheme = theme === 'dark';
 
   // Auto-scroll al fondo cuando hay nuevos mensajes o cambia el streaming
   useEffect(() => {
@@ -217,77 +220,112 @@ export default function ChatWindow() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      
-      {/* ── Barra de Progreso ── */}
-      <div style={{ 
-        padding: '16px 24px', 
-        borderBottom: '1px solid var(--border)',
-        background: 'var(--surface)'
-      }}>
+    <div
+      id="main-content"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        background: 'var(--background-soft)',
+      }}
+    >
+      <div
+        style={{
+          padding: '16px 20px',
+          borderBottom: '1px solid var(--border)',
+          background: 'var(--surface)',
+        }}
+      >
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-          <Text style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>
+          <Text style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>
             {uiCopy.progressTitle}
           </Text>
-          <Text style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>
+          <Text style={{ fontSize: 13, color: 'var(--primary-strong)', fontWeight: 700 }}>
             {progressLabel}
           </Text>
         </div>
-        <Progress 
-          percent={progressPercent} 
-          showInfo={false} 
+        <Progress
+          percent={progressPercent}
+          showInfo={false}
           strokeColor={{
             '0%': 'var(--primary-glow)',
             '100%': 'var(--primary)',
           }}
           railColor="var(--surface-elevated)"
           size="small"
-          status={state.isTestFinished ? "success" : "active"}
+          status={state.isTestFinished ? 'success' : 'active'}
         />
       </div>
 
-      {/* ── Área de Mensajes (con List de Ant Design) ── */}
-      <div 
+      <div
         className="chat-scroll"
-        style={{ flex: 1, overflowY: 'auto', padding: '24px' }}
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '20px clamp(14px, 3.5vw, 24px)',
+          overscrollBehavior: 'contain',
+        }}
       >
         {displayItems.length === 0 ? (
-          // Estado Vacío Inicial
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.6, gap: 16 }}>
-            <RobotOutlined style={{ fontSize: 48, color: 'var(--primary)' }} />
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              opacity: 0.85,
+              gap: 14,
+              textAlign: 'center',
+            }}
+          >
+            <RobotOutlined style={{ fontSize: 46, color: 'var(--primary)' }} />
             <Text style={{ color: 'var(--foreground)', fontSize: 16 }}>{uiCopy.emptyStateTitle}</Text>
             <Text style={{ color: 'var(--text-secondary)' }}>{uiCopy.emptyStateDescription}</Text>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {displayItems.map((msg) => {
               const isUser = msg.role === 'user';
-              // Mientras está cargando y es el mensaje strimeado sin texto todavía, mostramos Skeleton
               const isTyping = isRequestLoading && !msg.content && msg.id === 'streaming-assistant';
 
               return (
-                <div key={msg.id} style={{ display: 'flex', gap: 16, width: '100%', flexDirection: isUser ? 'row-reverse' : 'row' }}>
-                  
-                  {/* AVATAR */}
-                  <Avatar 
-                    icon={isUser ? <UserOutlined /> : <RobotOutlined />} 
-                    style={{ 
-                      backgroundColor: isUser ? '#2d2d3a' : 'var(--primary-glow)',
-                      color: isUser ? '#fff' : 'var(--primary)',
-                      flexShrink: 0
-                    }} 
+                <div
+                  key={msg.id}
+                  style={{
+                    display: 'flex',
+                    gap: 12,
+                    width: '100%',
+                    flexDirection: isUser ? 'row-reverse' : 'row',
+                    animation: 'fade-slide-in 220ms ease-out',
+                  }}
+                >
+                  <Avatar
+                    icon={isUser ? <UserOutlined /> : <RobotOutlined />}
+                    style={{
+                      backgroundColor: isUser ? 'var(--surface-elevated)' : 'var(--primary-glow)',
+                      color: isUser ? 'var(--foreground)' : 'var(--primary)',
+                      border: '1px solid var(--border)',
+                      flexShrink: 0,
+                    }}
                   />
 
-                  {/* BURBUJA DE MENSAJE */}
-                  <div style={{ 
-                    maxWidth: '75%', 
-                    background: isUser ? 'var(--primary-glow)' : 'var(--surface-elevated)',
-                    padding: '12px 16px',
-                    borderRadius: 16,
-                    borderTopRightRadius: isUser ? 4 : 16,
-                    borderTopLeftRadius: !isUser ? 4 : 16,
-                    border: isUser ? '1px solid rgba(108, 92, 231, 0.3)' : '1px solid var(--border)'
-                  }}>
+                  <div
+                    style={{
+                      maxWidth: 'min(82%, 760px)',
+                      background: isUser
+                        ? 'color-mix(in srgb, var(--primary-glow) 80%, var(--surface))'
+                        : 'var(--surface)',
+                      padding: '12px 16px',
+                      borderRadius: 16,
+                      borderTopRightRadius: isUser ? 6 : 16,
+                      borderTopLeftRadius: !isUser ? 6 : 16,
+                      border: isUser
+                        ? '1px solid color-mix(in srgb, var(--primary) 26%, var(--border))'
+                        : '1px solid var(--border)',
+                      boxShadow: 'var(--shadow-sm)',
+                    }}
+                  >
                     {isTyping ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: 250 }}>
                         <Text type="secondary" style={{ fontSize: 12 }}>{loadingText}</Text>
@@ -304,15 +342,24 @@ export default function ChatWindow() {
             })}
           </div>
         )}
-        
-        {/* Placeholder para error */}
+
         {(uiError || error) && (
-          <div style={{ textAlign: 'center', marginTop: 16 }}>
-            <Text type="danger">{uiError || uiCopy.requestErrorMessage}</Text>
+          <div
+            role="alert"
+            aria-live="polite"
+            style={{
+              textAlign: 'center',
+              marginTop: 16,
+              padding: '10px 12px',
+              border: '1px solid color-mix(in srgb, var(--danger) 35%, var(--border))',
+              borderRadius: 12,
+              background: 'color-mix(in srgb, var(--danger) 9%, var(--surface))',
+            }}
+          >
+            <Text style={{ color: 'var(--danger)' }}>{uiError || uiCopy.requestErrorMessage}</Text>
           </div>
         )}
 
-        {/* ── Componente Final (Sugerencias RIASEC) ── */}
         {state.isTestFinished && (
           <div style={{ marginTop: 24 }}>
             <TestResults />
@@ -322,46 +369,69 @@ export default function ChatWindow() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* ── Barra de Input Fija en el Layout ── */}
-      <div style={{ 
-        paddingTop: 16, 
-        paddingLeft: 24, 
-        paddingRight: 24, 
-        paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
-        borderTop: '1px solid var(--border)', 
-        background: 'var(--surface)' 
-      }}>
+      <div
+        style={{
+          paddingTop: 14,
+          paddingLeft: 20,
+          paddingRight: 20,
+          paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
+          borderTop: '1px solid var(--border)',
+          background: 'var(--surface)',
+        }}
+      >
         {state.isTestFinished ? (
-          <div style={{ textAlign: 'center', padding: '8px 0', background: 'var(--surface-elevated)', borderRadius: 12, border: '1px solid var(--border)' }}>
-            <Text style={{ color: 'var(--primary)', fontWeight: 600 }}>{uiCopy.finishedTitle}</Text>
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '10px 12px',
+              background: 'var(--surface-elevated)',
+              borderRadius: 12,
+              border: '1px solid var(--border)',
+            }}
+          >
+            <Text style={{ color: 'var(--primary-strong)', fontWeight: 700 }}>{uiCopy.finishedTitle}</Text>
             <br />
             <Text style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{uiCopy.finishedDescription}</Text>
           </div>
         ) : (
-          <Input
-            size="large"
-            placeholder={uiCopy.inputPlaceholder}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onPressEnter={handleSend}
-            disabled={isRequestLoading || state.isTestFinished}
-            style={{ 
-              background: 'var(--surface-elevated)', 
-              border: '1px solid var(--border)',
-              color: 'var(--foreground)',
-              borderRadius: 12
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr auto',
+              gap: 10,
+              alignItems: 'center',
             }}
-            suffix={
-              <Button 
-                type="primary" 
-                icon={<SendOutlined />} 
-                onClick={handleSend}
-                loading={isRequestLoading}
-                disabled={state.isTestFinished}
-                style={{ background: 'var(--primary)', border: 'none', borderRadius: 8 }}
-              />
-            }
-          />
+          >
+            <Input
+              size="large"
+              aria-label={uiCopy.inputPlaceholder}
+              placeholder={uiCopy.inputPlaceholder}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onPressEnter={handleSend}
+              disabled={isRequestLoading || state.isTestFinished}
+              style={{
+                background: 'var(--surface-elevated)',
+                border: '1px solid var(--border)',
+                color: 'var(--foreground)',
+                borderRadius: 12,
+              }}
+            />
+            <Button
+              type="primary"
+              aria-label={uiCopy.sendButtonLabel}
+              icon={<SendOutlined />}
+              onClick={handleSend}
+              loading={isRequestLoading}
+              disabled={state.isTestFinished}
+              style={{
+                minWidth: 48,
+                minHeight: 46,
+                borderRadius: 12,
+                boxShadow: isDarkTheme ? 'none' : '0 8px 18px rgba(47, 111, 237, 0.28)',
+              }}
+            />
+          </div>
         )}
       </div>
     </div>

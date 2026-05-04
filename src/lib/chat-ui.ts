@@ -8,6 +8,7 @@ interface ChatUICopy {
   emptyStateTitle: string;
   emptyStateDescription: string;
   inputPlaceholder: string;
+  sendButtonLabel: string;
   finishedTitle: string;
   finishedDescription: string;
 }
@@ -26,7 +27,8 @@ const CHAT_UI_COPY: Record<UILocale, ChatUICopy> = {
     emptyStateDescription:
       'Tu asistente de orientación vocacional. Escríbeme para comenzar.',
     inputPlaceholder: 'Escribe tu mensaje...',
-    finishedTitle: '🌟 Test Vocacional Finalizado',
+    sendButtonLabel: 'Enviar mensaje',
+    finishedTitle: 'Test Vocacional Finalizado',
     finishedDescription:
       'Revisa tus resultados en la parte superior o en el Radar.',
   },
@@ -43,7 +45,8 @@ const CHAT_UI_COPY: Record<UILocale, ChatUICopy> = {
     emptyStateDescription:
       'Your vocational guidance assistant. Send me a message to begin.',
     inputPlaceholder: 'Type your message...',
-    finishedTitle: '🌟 Vocational Test Completed',
+    sendButtonLabel: 'Send message',
+    finishedTitle: 'Vocational Test Completed',
     finishedDescription:
       'Review your results above or on the radar panel.',
   },

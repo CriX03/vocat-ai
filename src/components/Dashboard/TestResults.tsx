@@ -52,7 +52,7 @@ export default function TestResults() {
   const secondaryCareerDetails = secondaryProfile?.careerDetails.slice(0, 2) ?? [];
 
   return (
-    <div style={{ padding: '0 24px 24px' }}>
+    <div style={{ padding: '0 12px 20px' }}>
       <Result
         icon={<TrophyOutlined style={{ color: 'var(--primary)' }} />}
         status="success"
@@ -66,19 +66,27 @@ export default function TestResults() {
             {uiCopy.testResults.profileFoundSubtitle}
           </Text>
         }
-        style={{ padding: '32px 0 16px' }}
+        style={{ padding: '18px 0 12px' }}
         extra={[
           <Button key="restart" type="primary" onClick={handleRestart} icon={<RedoOutlined />}>
             {uiCopy.testResults.restartAndTryAgainButton}
           </Button>,
         ]}
       >
-        <div style={{ background: 'var(--surface-elevated)', padding: 24, borderRadius: 16, border: '1px solid var(--border)', textAlign: 'left' }}>
-          
+        <div
+          style={{
+            background: 'var(--surface)',
+            padding: 20,
+            borderRadius: 16,
+            border: '1px solid var(--border)',
+            textAlign: 'left',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
           <Paragraph>
             <Text style={{ fontSize: 16, color: 'var(--foreground)' }}>
               {uiCopy.testResults.dominantProfileLabel}{' '}
-              <strong style={{ color: 'var(--primary)' }}>{primaryProfile.title}</strong>
+              <strong style={{ color: 'var(--primary-strong)' }}>{primaryProfile.title}</strong>
             </Text>
           </Paragraph>
           <Paragraph style={{ color: 'var(--text-secondary)' }}>
@@ -112,10 +120,19 @@ export default function TestResults() {
                     padding: 12,
                     borderRadius: 12,
                     border: '1px solid var(--border)',
-                    background: 'var(--surface)',
+                    background: 'var(--surface-elevated)',
                   }}
                 >
-                  <Tag color="cyan" style={{ padding: '4px 12px', fontSize: 14, borderRadius: 16, marginBottom: 8 }}>
+                  <Tag
+                    color="blue"
+                    style={{
+                      padding: '4px 12px',
+                      fontSize: 14,
+                      borderRadius: 16,
+                      marginBottom: 8,
+                      border: 'none',
+                    }}
+                  >
                     {career.name}
                   </Tag>
                   <Text style={{ color: 'var(--text-secondary)', display: 'block', lineHeight: 1.6 }}>
@@ -134,8 +151,8 @@ export default function TestResults() {
               </Text>
               <Space direction="vertical" size={10} style={{ width: '100%' }}>
                 {secondaryCareerDetails.map((career) => (
-                  <div key={career.name}>
-                    <Tag color="blue" style={{ borderRadius: 16, marginBottom: 6 }}>
+                  <div key={career.name} style={{ padding: 10, borderRadius: 12, background: 'var(--surface-elevated)', border: '1px solid var(--border)' }}>
+                    <Tag color="geekblue" style={{ borderRadius: 16, marginBottom: 6, border: 'none' }}>
                       {career.name}
                     </Tag>
                     <Text style={{ color: 'var(--text-secondary)', display: 'block', lineHeight: 1.6 }}>

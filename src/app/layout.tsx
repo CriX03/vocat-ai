@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import Script from 'next/script';
 import AntdProvider from '@/components/AntdProvider';
+import { ThemeProvider } from '@/context/ThemeContext';
 import { VocationalProvider } from '@/context/VocationalContext';
 import { getUICopy } from '@/lib/ui-copy';
 import './globals.css';
@@ -36,6 +37,23 @@ export default function RootLayout({
     >
       <body suppressHydrationWarning>
         <Script
+          id="init-theme"
+          strategy="beforeInteractive"
+        >
+          {`(function(){
+    var key = 'vocatai-theme';
+    var root = document.documentElement;
+    var saved = null;
+    try {
+      saved = window.localStorage.getItem(key);
+    } catch (e) {
+      saved = null;
+    }
+    var theme = saved === 'dark' || saved === 'light' ? saved : 'light';
+    root.setAttribute('data-theme', theme);
+  })();`}
+        </Script>
+        <Script
           id="strip-extension-dom-attrs"
           strategy="beforeInteractive"
         >
@@ -66,9 +84,11 @@ export default function RootLayout({
     }, { once: true });
   })();`}
         </Script>
-        <VocationalProvider>
-          <AntdProvider>{children}</AntdProvider>
-        </VocationalProvider>
+        <ThemeProvider>
+          <VocationalProvider>
+            <AntdProvider>{children}</AntdProvider>
+          </VocationalProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

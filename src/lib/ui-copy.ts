@@ -1,13 +1,19 @@
 import { getChatUICopy, resolveChatLocale, type UILocale } from '@/lib/chat-ui';
 
 interface HomePageCopy {
+  skipToMainContent: string;
   appSubtitle: string;
   mobileProfileButton: string;
+  toggleThemeAriaLabel: string;
+  toggleThemeButtonText: string;
+  lightThemeLabel: string;
+  darkThemeLabel: string;
   dashboardTitle: string;
   dashboardSubtitle: string;
   radarHintDesktop: string;
   drawerTitle: string;
   radarHintMobile: string;
+  mobileDrawerButtonAriaLabel: string;
 }
 
 interface TestResultsCopy {
@@ -51,13 +57,19 @@ const UI_COPY: Record<UILocale, AppUICopy> = {
       'Plataforma híbrida de orientación vocacional impulsada por IA. Descubre tu perfil RIASEC de forma interactiva.',
     chat: getChatUICopy('es'),
     home: {
+      skipToMainContent: 'Saltar al contenido principal',
       appSubtitle: 'Orientación Vocacional Inteligente',
       mobileProfileButton: 'Mi Perfil',
+      toggleThemeAriaLabel: 'Cambiar tema visual',
+      toggleThemeButtonText: 'Tema',
+      lightThemeLabel: 'Tema claro',
+      darkThemeLabel: 'Tema oscuro',
       dashboardTitle: 'Perfil RIASEC',
       dashboardSubtitle: 'Tu progreso en tiempo real',
       radarHintDesktop: 'El gráfico crecerá a medida que respondas las preguntas',
       drawerTitle: 'Tu Perfil RIASEC',
       radarHintMobile: 'Tu perfil se actualiza en tiempo real',
+      mobileDrawerButtonAriaLabel: 'Abrir panel de perfil RIASEC',
     },
     testResults: {
       noProfileTitle: 'Sin perfil definido',
@@ -91,13 +103,19 @@ const UI_COPY: Record<UILocale, AppUICopy> = {
       'Hybrid AI-powered vocational guidance platform. Discover your RIASEC profile interactively.',
     chat: getChatUICopy('en'),
     home: {
+      skipToMainContent: 'Skip to main content',
       appSubtitle: 'Intelligent Vocational Guidance',
       mobileProfileButton: 'My Profile',
+      toggleThemeAriaLabel: 'Toggle color theme',
+      toggleThemeButtonText: 'Theme',
+      lightThemeLabel: 'Light theme',
+      darkThemeLabel: 'Dark theme',
       dashboardTitle: 'RIASEC Profile',
       dashboardSubtitle: 'Your progress in real time',
       radarHintDesktop: 'The chart will grow as you answer the questions',
       drawerTitle: 'Your RIASEC Profile',
       radarHintMobile: 'Your profile updates in real time',
+      mobileDrawerButtonAriaLabel: 'Open RIASEC profile panel',
     },
     testResults: {
       noProfileTitle: 'No profile detected',

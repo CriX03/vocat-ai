@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useVocational } from '@/context/VocationalContext';
 import { getUICopyFromLanguage } from '@/lib/ui-copy';
 import { Spin } from 'antd';
+import { useTheme } from '@/context/ThemeContext';
 
 // Importación dinámica obligatoria para evitar errores de "document is not defined" (SSR)
 // ya que ant-design/plots / G2 usa Canvas/DOM por debajo.
@@ -14,6 +15,7 @@ const Radar = dynamic(() => import('@ant-design/plots').then((mod) => mod.Radar)
 
 export default function RiasecRadarChart() {
   const { state } = useVocational();
+  const { theme } = useTheme();
   const { riasecScores } = state;
   const uiCopy = getUICopyFromLanguage(
     typeof window === 'undefined' ? undefined : window.navigator.language
@@ -34,6 +36,7 @@ export default function RiasecRadarChart() {
   // Escala máxima dinámica (mínimo 10, va creciendo)
   const currentMax = Math.max(...Object.values(riasecScores));
   const maxDomain = Math.max(10, currentMax + 5);
+  const isDarkTheme = theme === 'dark';
 
   const config = {
     data,
@@ -47,16 +50,15 @@ export default function RiasecRadarChart() {
         max: maxDomain,
       },
     },
-    // Estilos premium adaptados al Dark Theme (variables CSS)
     area: {
       style: {
-        fillOpacity: 0.25,
-        fill: '#6c5ce7', // var(--primary)
+        fillOpacity: isDarkTheme ? 0.3 : 0.22,
+        fill: 'var(--primary)',
       },
     },
     line: {
       style: {
-        stroke: '#6c5ce7',
+        stroke: 'var(--primary)',
         lineWidth: 2,
       },
     },
@@ -64,8 +66,8 @@ export default function RiasecRadarChart() {
       size: 4,
       shapeField: 'circle',
       style: {
-        fill: '#6c5ce7',
-        stroke: '#2d2d3a', // fondo
+        fill: 'var(--primary)',
+        stroke: 'var(--surface)',
         lineWidth: 2,
       },
     },
@@ -74,7 +76,7 @@ export default function RiasecRadarChart() {
         grid: {
           line: {
             style: {
-              stroke: 'rgba(255, 255, 255, 0.1)',
+              stroke: 'var(--chart-grid)',
               lineDash: [4, 4],
             },
           },
@@ -84,17 +86,29 @@ export default function RiasecRadarChart() {
       x: {
         label: {
           style: {
-            fill: 'rgba(255, 255, 255, 0.65)',
+            fill: 'var(--chart-label)',
             fontSize: 12,
           },
         },
       },
     },
-    theme: 'dark', // Pide a G2 que empiece en base oscura
+    theme: isDarkTheme ? 'dark' : 'light',
   };
 
   return (
-    <div style={{ width: '100%', height: 320, opacity: isAllZero ? 0.3 : 1, transition: 'opacity 0.5s ease' }}>
+    <div
+      style={{ width: '100%', height: 320, opacity: isAllZero ? 0.3 : 1, transition: 'opacity 0.5s ease' }}
+      role="img"
+      aria-label={uiCopy.radarChart.scoreAlias}
+    >
+      <span className="sr-only">
+        {`${uiCopy.radarChart.categories.realista}: ${riasecScores.R}. `}
+        {`${uiCopy.radarChart.categories.investigador}: ${riasecScores.I}. `}
+        {`${uiCopy.radarChart.categories.artistico}: ${riasecScores.A}. `}
+        {`${uiCopy.radarChart.categories.social}: ${riasecScores.S}. `}
+        {`${uiCopy.radarChart.categories.emprendedor}: ${riasecScores.E}. `}
+        {`${uiCopy.radarChart.categories.convencional}: ${riasecScores.C}.`}
+      </span>
       <Radar {...config} />
     </div>
   );
