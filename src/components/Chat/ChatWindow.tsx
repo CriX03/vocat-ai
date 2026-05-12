@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Input, Button, Skeleton, Typography, Avatar, Progress } from 'antd';
+import { Input, Button, Skeleton, Typography, Avatar, Progress, type InputRef } from 'antd';
 import { SendOutlined, RobotOutlined, UserOutlined } from '@ant-design/icons';
 import { experimental_useObject as useObject } from '@ai-sdk/react';
 import {
@@ -78,6 +78,7 @@ export default function ChatWindow() {
   const [uiError, setUiError] = useState<string | null>(null);
   const [isFallbackLoading, setIsFallbackLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<InputRef>(null);
   const lastPayloadRef = useRef<ChatRequestInput | null>(null);
 
   const MAX_QUESTIONS = 15;
@@ -166,6 +167,14 @@ export default function ChatWindow() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [state.messages, object, isRequestLoading]);
 
+  // Autofocus en input cuando termina de cargar la respuesta del bot
+  useEffect(() => {
+    if (!isRequestLoading && state.messages.length > 0) {
+      inputRef.current?.focus();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRequestLoading]);
+
   // Rotar mensajes de carga (Gamificación)
   useEffect(() => {
     if (!isRequestLoading) return;
@@ -203,6 +212,7 @@ export default function ChatWindow() {
     submit(payload);
 
     setInputValue('');
+    inputRef.current?.focus();
   };
 
   // Combinar el historial consolidado con el objeto JSON que se está streameando ahora
@@ -404,6 +414,7 @@ export default function ChatWindow() {
           >
             <Input
               size="large"
+              ref={inputRef}
               aria-label={uiCopy.inputPlaceholder}
               placeholder={uiCopy.inputPlaceholder}
               value={inputValue}
