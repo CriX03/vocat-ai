@@ -406,26 +406,34 @@ export default function ChatWindow() {
         ) : (
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr auto',
+              display: 'flex',
               gap: 10,
-              alignItems: 'center',
+              alignItems: 'flex-end',
             }}
           >
-            <Input
-              size="large"
+            <Input.TextArea
               ref={inputRef}
               aria-label={uiCopy.inputPlaceholder}
               placeholder={uiCopy.inputPlaceholder}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              onPressEnter={handleSend}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
               disabled={isRequestLoading || state.isTestFinished}
+              autoSize={{ minRows: 1, maxRows: 5 }}
               style={{
                 background: 'var(--surface-elevated)',
                 border: '1px solid var(--border)',
                 color: 'var(--foreground)',
                 borderRadius: 12,
+                resize: 'none',
+                lineHeight: 1.5,
+                maxHeight: 130,
+                overflowY: 'auto',
               }}
             />
             <Button
@@ -440,6 +448,7 @@ export default function ChatWindow() {
                 minHeight: 46,
                 borderRadius: 12,
                 boxShadow: isDarkTheme ? 'none' : '0 8px 18px rgba(47, 111, 237, 0.28)',
+                flexShrink: 0,
               }}
             />
           </div>
