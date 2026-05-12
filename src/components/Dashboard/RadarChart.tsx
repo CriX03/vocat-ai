@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useVocational } from '@/context/VocationalContext';
-import { getUICopyFromLanguage } from '@/lib/ui-copy';
+import { getUICopy } from '@/lib/ui-copy';
 import { Spin } from 'antd';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -17,9 +17,7 @@ export default function RiasecRadarChart() {
   const { state } = useVocational();
   const { theme } = useTheme();
   const { riasecScores } = state;
-  const uiCopy = getUICopyFromLanguage(
-    typeof window === 'undefined' ? undefined : window.navigator.language
-  );
+  const uiCopy = getUICopy('es');
 
   const data = [
     { category: uiCopy.radarChart.categories.realista, score: riasecScores.R },

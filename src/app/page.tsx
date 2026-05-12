@@ -9,7 +9,7 @@ import {
   RadarChartOutlined,
 } from '@ant-design/icons';
 import { useTheme } from '@/context/ThemeContext';
-import { getUICopyFromLanguage } from '@/lib/ui-copy';
+import { getUICopy } from '@/lib/ui-copy';
 
 const { Title, Text } = Typography;
 const { Content, Sider } = Layout;
@@ -20,9 +20,7 @@ import RiasecRadarChart from '@/components/Dashboard/RadarChart';
 export default function Home() {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const uiCopy = getUICopyFromLanguage(
-    typeof window === 'undefined' ? undefined : window.navigator.language
-  );
+  const uiCopy = getUICopy('es');
 
   const isDarkTheme = theme === 'dark';
   const themeSwitchLabel = isDarkTheme
