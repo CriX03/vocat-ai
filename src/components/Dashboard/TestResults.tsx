@@ -98,7 +98,7 @@ export default function TestResults() {
               <Text strong style={{ color: 'var(--foreground)', display: 'block', marginBottom: 8 }}>
                 {uiCopy.testResults.keyTraitsLabel}
               </Text>
-              <Space direction="vertical" size={6} style={{ width: '100%' }}>
+              <Space orientation="vertical" size={6} style={{ width: '100%' }}>
                 {primaryProfile.descriptions.slice(0, 2).map((item) => (
                   <Text key={item} style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
                     - {item}
@@ -112,7 +112,7 @@ export default function TestResults() {
             <Text strong style={{ color: 'var(--foreground)', display: 'block', marginBottom: 12 }}>
               {uiCopy.testResults.topCareersLabel}
             </Text>
-            <Space direction="vertical" size={12} style={{ width: '100%' }}>
+            <Space orientation="vertical" size={12} style={{ width: '100%' }}>
               {primaryCareerDetails.map((career) => (
                 <div
                   key={career.name}
@@ -149,7 +149,7 @@ export default function TestResults() {
                 {uiCopy.testResults.secondaryProfileLabel}{' '}
                 <strong>{secondaryProfile.title}</strong>
               </Text>
-              <Space direction="vertical" size={10} style={{ width: '100%' }}>
+              <Space orientation="vertical" size={10} style={{ width: '100%' }}>
                 {secondaryCareerDetails.map((career) => (
                   <div key={career.name} style={{ padding: 10, borderRadius: 12, background: 'var(--surface-elevated)', border: '1px solid var(--border)' }}>
                     <Tag color="geekblue" style={{ borderRadius: 16, marginBottom: 6, border: 'none' }}>
