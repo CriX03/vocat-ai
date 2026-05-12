@@ -41,7 +41,7 @@ export async function POST(request: Request) {
 
     const result = await generateObject({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      model: 'openai/gpt-4o-mini' as any, // Proveedor String API
+      model: 'openai/gpt-5-mini' as any, // Proveedor String API
       system: systemWithContext,
       messages: [
         ...recentHistory,

@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
     const result = await streamObject({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      model: 'openai/gpt-4o-mini' as any,
+      model: 'openai/gpt-5-mini' as any,
       system: systemWithContext,
       messages: [
         ...recentHistory,
