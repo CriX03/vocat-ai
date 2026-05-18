@@ -1,5 +1,5 @@
-import { streamObject } from 'ai';
-import { NextResponse } from 'next/server';
+import { streamObject } from "ai";
+import { NextResponse } from "next/server";
 import {
   buildSystemWithContext,
   chatResponseSchema,
@@ -7,8 +7,8 @@ import {
   getFallbackQuestionNumber,
   getRecentHistory,
   type ChatRequestBody,
-} from '@/lib/chat-contract';
-import { analyzeSentiment } from '@/lib/sentiment-analysis';
+} from "@/lib/chat-contract";
+import { analyzeSentiment } from "@/lib/sentiment-analysis";
 
 export async function POST(request: Request) {
   let fallbackQuestion = 1;
@@ -19,27 +19,27 @@ export async function POST(request: Request) {
 
     fallbackQuestion = getFallbackQuestionNumber(currentQuestion);
 
-    if (!message || typeof message !== 'string') {
+    if (!message || typeof message !== "string") {
       return NextResponse.json(
         { error: 'El campo "message" es requerido' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const sentiment = analyzeSentiment(message);
 
-    const systemWithContext = buildSystemWithContext(sentiment.score, fallbackQuestion);
+    const systemWithContext = buildSystemWithContext(
+      sentiment.score,
+      fallbackQuestion,
+    );
 
     const recentHistory = getRecentHistory(history);
 
     const result = await streamObject({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      model: 'openai/gpt-5-mini' as any,
+      model: "openai/gpt-5.5" as any,
       system: systemWithContext,
-      messages: [
-        ...recentHistory,
-        { role: 'user', content: message },
-      ],
+      messages: [...recentHistory, { role: "user", content: message }],
       schema: chatResponseSchema,
     });
 
@@ -62,11 +62,13 @@ export async function POST(request: Request) {
             controller.enqueue(encoder.encode(JSON.stringify(finalObject)));
           }
         } catch (streamError) {
-          console.error('[VocatAI Stream API Error]', streamError);
+          console.error("[VocatAI Stream API Error]", streamError);
 
           if (!hasChunks) {
             const fallbackResponse = createFallbackResponse(fallbackQuestion);
-            controller.enqueue(encoder.encode(JSON.stringify(fallbackResponse)));
+            controller.enqueue(
+              encoder.encode(JSON.stringify(fallbackResponse)),
+            );
           }
         } finally {
           controller.close();
@@ -76,12 +78,12 @@ export async function POST(request: Request) {
 
     return new Response(stream, {
       headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'no-store',
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-store",
       },
     });
   } catch (error) {
-    console.error('[VocatAI Stream Route Error]', error);
+    console.error("[VocatAI Stream Route Error]", error);
 
     return NextResponse.json(createFallbackResponse(fallbackQuestion));
   }
