@@ -14,6 +14,8 @@ export interface HybridScoringConfig {
   noDomainPenalty: number;
   hardConstraintPenalty: number;
   minSocialSignalForHealth: number;
+  lowEvidenceThreshold: number;
+  lowEvidencePenalty: number;
 }
 
 export interface HybridScoringInput {
@@ -55,6 +57,8 @@ export const DEFAULT_SCORING_CONFIG: HybridScoringConfig = {
   noDomainPenalty: 0.82,
   hardConstraintPenalty: 0.2,
   minSocialSignalForHealth: 0.55,
+  lowEvidenceThreshold: 0.16,
+  lowEvidencePenalty: 0.75,
 };
 
 function normalizeRiasecScores(riasecScores: RiasecScoresMap): RiasecScoresMap {
@@ -177,11 +181,6 @@ const DOMAIN_CONSTRAINT_RULES: DomainConstraintRule[] = [
     mode: 'any',
     isSatisfied: (domainSet) => domainSet.has('SOFTWARE') || domainSet.has('TECH'),
   },
-  {
-    domains: ['DESIGN', 'TECH'],
-    mode: 'all',
-    isSatisfied: (domainSet) => domainSet.has('DESIGN') && domainSet.has('TECH'),
-  },
 ];
 
 function applyConstraintRules(
@@ -237,8 +236,11 @@ function buildCareerScore(
   }
 
   const socialSignal = computeSocialSignal(normalizedRiasecScores, conversationalSignals);
+  const evidenceSignal = (conversationalConsistency + accumulatedIntensity) / 2;
   const constraintsMultiplier = applyConstraintRules(career, domainSet, socialSignal, config);
-  const finalScore = weightedScore * constraintsMultiplier;
+  const lowEvidenceMultiplier =
+    evidenceSignal < config.lowEvidenceThreshold ? config.lowEvidencePenalty : 1;
+  const finalScore = weightedScore * constraintsMultiplier * lowEvidenceMultiplier;
 
   return {
     riasecMatch,
