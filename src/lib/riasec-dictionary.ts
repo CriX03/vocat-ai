@@ -78,6 +78,26 @@ const CAREER_METADATA_OVERRIDES: Partial<
       technical: 5,
     },
   },
+  'Diseño UX/UI': {
+    riasecProfiles: ['A', 'I'],
+    domains: ['DESIGN', 'TECH'],
+    traits: {
+      analytical: 4,
+      creativity: 5,
+      social: 3,
+      technical: 4,
+    },
+  },
+  Medicina: {
+    riasecProfiles: ['I', 'S'],
+    domains: ['HEALTH', 'SCIENCE'],
+    traits: {
+      analytical: 5,
+      creativity: 2,
+      social: 4,
+      technical: 4,
+    },
+  },
 };
 
 function toCareerDetail(

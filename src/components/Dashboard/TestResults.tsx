@@ -4,6 +4,7 @@ import { Result, Button, Typography, Tag, Space } from 'antd';
 import { RedoOutlined, TrophyOutlined } from '@ant-design/icons';
 import { useVocational } from '@/context/VocationalContext';
 import { riasecDictionary } from '@/lib/riasec-dictionary';
+import { rankCareersWithHybridScoring } from '@/lib/hybrid-recommendation-scoring';
 import { getUICopyFromLanguage } from '@/lib/ui-copy';
 import type { RiasecCategory } from '@/types/chat';
 
@@ -48,8 +49,22 @@ export default function TestResults() {
 
   const primaryProfile = riasecDictionary[primary[0]];
   const secondaryProfile = secondary ? riasecDictionary[secondary[0]] : null;
-  const primaryCareerDetails = primaryProfile.careerDetails.slice(0, 3);
-  const secondaryCareerDetails = secondaryProfile?.careerDetails.slice(0, 2) ?? [];
+
+  const allCareerDetails = Object.values(riasecDictionary).flatMap((profile) => profile.careerDetails);
+  const chatResponses = state.messages
+    .filter((message) => message.role === 'assistant')
+    .map((message) => message.aiResponse)
+    .filter((response): response is NonNullable<typeof response> => Boolean(response));
+
+  const rankedCareers = rankCareersWithHybridScoring({
+    careers: allCareerDetails,
+    riasecScores: state.riasecScores,
+    vocationalDomains: state.vocationalDomains,
+    chatResponses,
+  });
+
+  const primaryCareerDetails = rankedCareers.slice(0, 3).map((item) => item.career);
+  const secondaryCareerDetails = rankedCareers.slice(3, 5).map((item) => item.career);
 
   return (
     <div style={{ padding: '0 12px 20px' }}>
