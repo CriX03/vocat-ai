@@ -4,7 +4,7 @@ import { Result, Button, Typography, Tag, Space } from 'antd';
 import { RedoOutlined, TrophyOutlined } from '@ant-design/icons';
 import { useVocational } from '@/context/VocationalContext';
 import { riasecDictionary } from '@/lib/riasec-dictionary';
-import { rankCareersWithHybridScoring } from '@/lib/hybrid-recommendation-scoring';
+import { buildFinalRecommendations } from '@/lib/final-recommendations';
 import { getUICopyFromLanguage } from '@/lib/ui-copy';
 import type { RiasecCategory } from '@/types/chat';
 
@@ -56,15 +56,17 @@ export default function TestResults() {
     .map((message) => message.aiResponse)
     .filter((response): response is NonNullable<typeof response> => Boolean(response));
 
-  const rankedCareers = rankCareersWithHybridScoring({
+  const finalRecommendations = buildFinalRecommendations({
+    primaryProfile: primary[0],
+    primaryProfileTitle: primaryProfile.title,
     careers: allCareerDetails,
     riasecScores: state.riasecScores,
     vocationalDomains: state.vocationalDomains,
     chatResponses,
   });
 
-  const primaryCareerDetails = rankedCareers.slice(0, 3).map((item) => item.career);
-  const secondaryCareerDetails = rankedCareers.slice(3, 5).map((item) => item.career);
+  const primaryCareerRecommendations = finalRecommendations.carreras_recomendadas.slice(0, 3);
+  const secondaryCareerRecommendations = finalRecommendations.carreras_recomendadas.slice(3, 5);
 
   return (
     <div style={{ padding: '0 12px 20px' }}>
@@ -105,7 +107,7 @@ export default function TestResults() {
             </Text>
           </Paragraph>
           <Paragraph style={{ color: 'var(--text-secondary)' }}>
-            {primaryProfile.description}
+            {finalRecommendations.justificacion_perfil}
           </Paragraph>
 
           {primaryProfile.descriptions.length > 0 && (
@@ -128,9 +130,9 @@ export default function TestResults() {
               {uiCopy.testResults.topCareersLabel}
             </Text>
             <Space orientation="vertical" size={12} style={{ width: '100%' }}>
-              {primaryCareerDetails.map((career) => (
+              {primaryCareerRecommendations.map((career) => (
                 <div
-                  key={career.name}
+                  key={career.carrera}
                   style={{
                     padding: 12,
                     borderRadius: 12,
@@ -148,10 +150,10 @@ export default function TestResults() {
                       border: 'none',
                     }}
                   >
-                    {career.name}
+                    {career.carrera}
                   </Tag>
                   <Text style={{ color: 'var(--text-secondary)', display: 'block', lineHeight: 1.6 }}>
-                    {career.description}
+                    {career.razon}
                   </Text>
                 </div>
               ))}
@@ -165,13 +167,13 @@ export default function TestResults() {
                 <strong>{secondaryProfile.title}</strong>
               </Text>
               <Space orientation="vertical" size={10} style={{ width: '100%' }}>
-                {secondaryCareerDetails.map((career) => (
-                  <div key={career.name} style={{ padding: 10, borderRadius: 12, background: 'var(--surface-elevated)', border: '1px solid var(--border)' }}>
+                {secondaryCareerRecommendations.map((career) => (
+                  <div key={career.carrera} style={{ padding: 10, borderRadius: 12, background: 'var(--surface-elevated)', border: '1px solid var(--border)' }}>
                     <Tag color="geekblue" style={{ borderRadius: 16, marginBottom: 6, border: 'none' }}>
-                      {career.name}
+                      {career.carrera}
                     </Tag>
                     <Text style={{ color: 'var(--text-secondary)', display: 'block', lineHeight: 1.6 }}>
-                      {career.description}
+                      {career.razon}
                     </Text>
                   </div>
                 ))}
