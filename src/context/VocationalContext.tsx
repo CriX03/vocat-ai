@@ -94,6 +94,30 @@ function accumulateRiasecScore(
   };
 }
 
+function mergeVocationalDomains(
+  currentDomains: VocationalDomains | undefined,
+  incomingDomains: VocationalDomains | undefined
+): VocationalDomains | undefined {
+  if (!incomingDomains) return currentDomains;
+
+  const mergedDetectedDomains = Array.from(
+    new Set([
+      ...(currentDomains?.detectedDomains ?? []),
+      ...(incomingDomains.detectedDomains ?? []),
+    ])
+  );
+
+  return {
+    dominantDomain: incomingDomains.dominantDomain ?? currentDomains?.dominantDomain ?? null,
+    detectedDomains:
+      mergedDetectedDomains.length > 0 ? mergedDetectedDomains : currentDomains?.detectedDomains,
+    scores: {
+      ...(currentDomains?.scores ?? {}),
+      ...(incomingDomains.scores ?? {}),
+    },
+  };
+}
+
 /* ────────────────────────────────────────────
  * Reducer
  * ──────────────────────────────────────────── */
@@ -137,7 +161,10 @@ function vocationalReducer(
           response.analisis_riasec.puntos
         ),
         currentQuestion: response.metadatos.pregunta_n,
-        vocationalDomains: response.vocationalDomains ?? state.vocationalDomains,
+        vocationalDomains: mergeVocationalDomains(
+          state.vocationalDomains,
+          response.vocationalDomains
+        ),
         isTestFinished: response.metadatos.finalizar_test || response.metadatos.pregunta_n >= 15,
         isLoading: false,
       };

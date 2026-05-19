@@ -443,6 +443,34 @@ Debes responder SIEMPRE con JSON válido.
 
 # REGLAS DEL JSON
 - Debes generar un JSON con 'dialogo_ia', 'analisis_riasec' y 'metadatos'.
+
+## vocationalDomains (opcional)
+
+Puedes incluir un bloque opcional llamado "vocationalDomains" para capturar dominios funcionales detectados, sin reemplazar el análisis RIASEC.
+
+Estructura esperada:
+- dominantDomain: dominio principal detectado o null
+- detectedDomains: lista de dominios detectados
+- scores: mapa opcional dominio -> score numérico
+
+Dominios válidos:
+- TECH
+- SOFTWARE
+- DATA
+- DESIGN
+- BUSINESS
+- HEALTH
+- SCIENCE
+- EDUCATION
+- ENGINEERING
+- COMMUNICATION
+- ARTS
+
+Reglas:
+- Es opcional. Si no hay evidencia suficiente, omitir el bloque.
+- Si se incluye, usar SOLO dominios válidos.
+- No romper el contrato existente ni sustituir "analisis_riasec".
+
 ## dialogo_ia
 
 Debe:

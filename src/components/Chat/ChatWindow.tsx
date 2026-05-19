@@ -33,6 +33,11 @@ function parseRequestPayload(body: BodyInit | null | undefined): ChatRequestInpu
   }
 }
 
+function parseChatResponse(value: unknown): ChatResponse | null {
+  const parsedResponse = chatResponseSchema.safeParse(value);
+  return parsedResponse.success ? parsedResponse.data : null;
+}
+
 function createTextResponseFromJson(value: unknown): Response {
   return new Response(JSON.stringify(value), {
     status: 200,
@@ -56,9 +61,7 @@ async function requestNonStreamingFallback(payload: ChatRequestInput): Promise<C
     if (!fallbackResponse.ok) return null;
 
     const fallbackJson = await fallbackResponse.json();
-    const parsedFallback = chatResponseSchema.safeParse(fallbackJson);
-
-    return parsedFallback.success ? (parsedFallback.data as ChatResponse) : null;
+    return parseChatResponse(fallbackJson);
   } catch {
     return null;
   }
@@ -125,10 +128,12 @@ export default function ChatWindow() {
       setUiError(uiCopy.requestErrorMessage);
     },
     onFinish: async ({ object: finalObject, error: err }) => {
-      if (finalObject && !err) {
+      const parsedFinalObject = parseChatResponse(finalObject);
+
+      if (parsedFinalObject && !err) {
         dispatch({
           type: 'ADD_AI_RESPONSE',
-          payload: { response: finalObject as ChatResponse },
+          payload: { response: parsedFinalObject },
         });
 
         setUiError(null);
@@ -220,12 +225,14 @@ export default function ChatWindow() {
   
   // Si estamos cargando y hay fragmentos del objeto stromeando, mostramos la previsualización del chat
   if (isRequestLoading) {
+    const parsedStreamingObject = parseChatResponse(object);
+
     displayItems.push({
       id: 'streaming-assistant',
       role: 'assistant',
       content: object?.dialogo_ia || '',
       timestamp: 0,
-      aiResponse: object as ChatResponse,
+      aiResponse: parsedStreamingObject ?? undefined,
     });
   }
 
