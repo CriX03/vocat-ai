@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { riasecDictionary } from "@/lib/riasec-dictionary";
+import { VOCATIONAL_DOMAINS } from "@/types/vocational-domain";
 
 export interface ChatRequestBody {
   message: string;
@@ -576,6 +577,14 @@ export const chatResponseSchema = z.object({
     })
     .nullable()
     .describe("Usa null cuando aun no corresponda recomendar carreras"),
+  vocationalDomains: z
+    .object({
+      dominantDomain: z.enum(VOCATIONAL_DOMAINS).nullable().optional(),
+      detectedDomains: z.array(z.enum(VOCATIONAL_DOMAINS)).optional(),
+      scores: z.partialRecord(z.enum(VOCATIONAL_DOMAINS), z.number()).optional(),
+    })
+    .optional()
+    .describe("Capa opcional para dominios vocacionales detectados"),
 });
 
 export type ChatResponsePayload = z.infer<typeof chatResponseSchema>;

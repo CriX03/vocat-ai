@@ -1,3 +1,5 @@
+import type { VocationalDomains } from '@/types/vocational-domain';
+
 /**
  * Protocolo de Comunicación VocatAI
  *
@@ -58,4 +60,6 @@ export interface ChatResponse {
   metadatos: ChatMetadata;
   /** Recomendaciones estructuradas; null mientras no haya suficiente claridad */
   recomendaciones: VocationalRecommendations | null;
+  /** Capa opcional para dominios vocacionales detectados */
+  vocationalDomains?: VocationalDomains;
 }

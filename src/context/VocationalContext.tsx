@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { ChatResponse, RiasecCategory } from '@/types/chat';
+import type { VocationalDomains } from '@/types/vocational-domain';
 
 /* ────────────────────────────────────────────
  * Tipos del Estado
@@ -37,6 +38,7 @@ export interface RiasecScores {
 export interface VocationalState {
   messages: ChatMessage[];
   riasecScores: RiasecScores;
+  vocationalDomains?: VocationalDomains;
   currentQuestion: number;
   isTestFinished: boolean;
   isLoading: boolean;
@@ -135,6 +137,7 @@ function vocationalReducer(
           response.analisis_riasec.puntos
         ),
         currentQuestion: response.metadatos.pregunta_n,
+        vocationalDomains: response.vocationalDomains ?? state.vocationalDomains,
         isTestFinished: response.metadatos.finalizar_test || response.metadatos.pregunta_n >= 15,
         isLoading: false,
       };
