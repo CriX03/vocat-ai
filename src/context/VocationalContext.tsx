@@ -96,7 +96,7 @@ function accumulateRiasecScore(
 
 function mergeVocationalDomains(
   currentDomains: VocationalDomains | undefined,
-  incomingDomains: VocationalDomains | undefined
+  incomingDomains: VocationalDomains | null | undefined
 ): VocationalDomains | undefined {
   if (!incomingDomains) return currentDomains;
 

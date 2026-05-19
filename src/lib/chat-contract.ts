@@ -607,11 +607,24 @@ export const chatResponseSchema = z.object({
     .describe("Usa null cuando aun no corresponda recomendar carreras"),
   vocationalDomains: z
     .object({
-      dominantDomain: z.enum(VOCATIONAL_DOMAINS).nullable().optional(),
-      detectedDomains: z.array(z.enum(VOCATIONAL_DOMAINS)).optional(),
-      scores: z.partialRecord(z.enum(VOCATIONAL_DOMAINS), z.number()).optional(),
+      dominantDomain: z.enum(VOCATIONAL_DOMAINS).nullable(),
+      detectedDomains: z.array(z.enum(VOCATIONAL_DOMAINS)),
+      scores: z
+        .object({
+          TECH: z.number(),
+          SOFTWARE: z.number(),
+          DATA: z.number(),
+          DESIGN: z.number(),
+          BUSINESS: z.number(),
+          HEALTH: z.number(),
+          SCIENCE: z.number(),
+          EDUCATION: z.number(),
+          ENGINEERING: z.number(),
+          COMMUNICATION: z.number(),
+          ARTS: z.number(),
+        }),
     })
-    .optional()
+    .nullable()
     .describe("Capa opcional para dominios vocacionales detectados"),
 });
 
@@ -683,5 +696,6 @@ export function createFallbackResponse(
       finalizar_test: false,
     },
     recomendaciones: null,
+    vocationalDomains: null,
   };
 }

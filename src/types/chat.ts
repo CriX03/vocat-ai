@@ -61,5 +61,5 @@ export interface ChatResponse {
   /** Recomendaciones estructuradas; null mientras no haya suficiente claridad */
   recomendaciones: VocationalRecommendations | null;
   /** Capa opcional para dominios vocacionales detectados */
-  vocationalDomains?: VocationalDomains;
+  vocationalDomains?: VocationalDomains | null;
 }
