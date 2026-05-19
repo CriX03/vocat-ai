@@ -1,6 +1,25 @@
 import type { RiasecCategory } from '@/types/chat';
+import type { VocationalDomain } from '@/types/vocational-domain';
+
+type RiasecProfileKey = Exclude<RiasecCategory, 'NONE'>;
+type TraitLevel = 1 | 2 | 3 | 4 | 5;
+
+export interface CareerTraits {
+  analytical: TraitLevel;
+  creativity: TraitLevel;
+  social: TraitLevel;
+  technical: TraitLevel;
+}
 
 export interface RiasecCareerDetail {
+  name: string;
+  description: string;
+  riasecProfiles: RiasecProfileKey[];
+  domains: VocationalDomain[];
+  traits: CareerTraits;
+}
+
+interface RiasecCareerDetailBase {
   name: string;
   description: string;
 }
@@ -13,7 +32,69 @@ export interface RiasecProfile {
   careerDetails: RiasecCareerDetail[];
 }
 
-export const riasecDictionary: Record<Exclude<RiasecCategory, 'NONE'>, RiasecProfile> = {
+interface RiasecProfileBase {
+  title: string;
+  description: string;
+  descriptions: string[];
+  careers: string[];
+  careerDetails: RiasecCareerDetailBase[];
+}
+
+const PROFILE_DOMAIN_MAP: Record<RiasecProfileKey, VocationalDomain[]> = {
+  R: ['ENGINEERING', 'TECH'],
+  I: ['SCIENCE', 'DATA'],
+  A: ['ARTS', 'DESIGN'],
+  S: ['HEALTH', 'EDUCATION'],
+  E: ['BUSINESS', 'COMMUNICATION'],
+  C: ['BUSINESS', 'DATA'],
+};
+
+const PROFILE_TRAITS_MAP: Record<RiasecProfileKey, CareerTraits> = {
+  R: { analytical: 3, creativity: 2, social: 2, technical: 5 },
+  I: { analytical: 5, creativity: 3, social: 2, technical: 4 },
+  A: { analytical: 2, creativity: 5, social: 3, technical: 3 },
+  S: { analytical: 3, creativity: 3, social: 5, technical: 2 },
+  E: { analytical: 4, creativity: 4, social: 4, technical: 3 },
+  C: { analytical: 5, creativity: 2, social: 2, technical: 3 },
+};
+
+const CAREER_METADATA_OVERRIDES: Partial<
+  Record<
+    string,
+    {
+      riasecProfiles?: RiasecProfileKey[];
+      domains?: VocationalDomain[];
+      traits?: CareerTraits;
+    }
+  >
+> = {
+  'Desarrollo de Software': {
+    riasecProfiles: ['I', 'C'],
+    domains: ['TECH', 'SOFTWARE'],
+    traits: {
+      analytical: 5,
+      creativity: 4,
+      social: 2,
+      technical: 5,
+    },
+  },
+};
+
+function toCareerDetail(
+  profileKey: RiasecProfileKey,
+  career: RiasecCareerDetailBase
+): RiasecCareerDetail {
+  const metadataOverride = CAREER_METADATA_OVERRIDES[career.name];
+
+  return {
+    ...career,
+    riasecProfiles: metadataOverride?.riasecProfiles ?? [profileKey],
+    domains: metadataOverride?.domains ?? PROFILE_DOMAIN_MAP[profileKey],
+    traits: metadataOverride?.traits ?? PROFILE_TRAITS_MAP[profileKey],
+  };
+}
+
+const baseRiasecDictionary: Record<RiasecProfileKey, RiasecProfileBase> = {
   R: {
     title: 'Realista (Hacedor)',
     description: 'Te orientas a resolver problemas concretos con acción, herramientas y resultados visibles. Valoras la eficiencia, la técnica y el trabajo aplicado.',
@@ -459,3 +540,18 @@ export const riasecDictionary: Record<Exclude<RiasecCategory, 'NONE'>, RiasecPro
     ],
   },
 };
+
+export const riasecDictionary: Record<RiasecProfileKey, RiasecProfile> =
+  (Object.entries(baseRiasecDictionary) as [RiasecProfileKey, RiasecProfileBase][]).reduce(
+    (accumulator, [profileKey, profileValue]) => {
+      accumulator[profileKey] = {
+        ...profileValue,
+        careerDetails: profileValue.careerDetails.map((career) =>
+          toCareerDetail(profileKey, career)
+        ),
+      };
+
+      return accumulator;
+    },
+    {} as Record<RiasecProfileKey, RiasecProfile>
+  );
