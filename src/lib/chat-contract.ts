@@ -630,6 +630,209 @@ export const chatResponseSchema = z.object({
 
 export type ChatResponsePayload = z.infer<typeof chatResponseSchema>;
 
+type HistoryMessage = { role: "user" | "assistant"; content: string };
+
+type MemoryMode = "recent" | "hybrid" | "full";
+
+const DEFAULT_MEMORY_MODE: MemoryMode = "hybrid";
+const DEFAULT_RECENT_WINDOW = 5;
+const DEFAULT_FULL_HISTORY_TRIGGER_QUESTION = 10;
+const MAX_RECENT_WINDOW = 20;
+const MIN_RECENT_WINDOW = 3;
+const MAX_KEYWORDS = 6;
+const MAX_LAST_USER_MESSAGE_LENGTH = 180;
+
+const SPANISH_STOPWORDS = new Set([
+  "para",
+  "como",
+  "pero",
+  "porque",
+  "sobre",
+  "entre",
+  "desde",
+  "hasta",
+  "donde",
+  "cuando",
+  "tambien",
+  "tengo",
+  "quiero",
+  "gusta",
+  "interesa",
+  "mucho",
+  "poco",
+  "nada",
+  "algo",
+  "esto",
+  "esta",
+  "estas",
+  "este",
+  "estos",
+  "hola",
+  "gracias",
+  "ser",
+  "estar",
+  "hacer",
+  "tener",
+  "poder",
+  "deber",
+  "saber",
+  "quieres",
+  "puedes",
+  "bien",
+  "mal",
+  "cosa",
+  "cosas",
+]);
+
+const DOMAIN_KEYWORDS: Record<(typeof VOCATIONAL_DOMAINS)[number], string[]> = {
+  TECH: ["tecnologia", "tecnico", "digital", "computacion"],
+  SOFTWARE: ["software", "programacion", "codigo", "desarrollo"],
+  DATA: ["datos", "data", "analitica", "estadistica", "modelos"],
+  DESIGN: ["diseno", "ux", "ui", "creatividad", "prototipo"],
+  BUSINESS: ["negocio", "empresa", "ventas", "emprender", "marketing"],
+  HEALTH: ["salud", "medicina", "clinica", "pacientes", "cuidado"],
+  SCIENCE: ["ciencia", "investigacion", "laboratorio", "cientifico"],
+  EDUCATION: ["educacion", "ensenar", "docencia", "aprendizaje", "mentor"],
+  ENGINEERING: ["ingenieria", "sistemas", "procesos", "mecanica", "industrial"],
+  COMMUNICATION: ["comunicacion", "redaccion", "oratoria", "medios", "contenido"],
+  ARTS: ["arte", "artistico", "musica", "ilustracion", "audiovisual"],
+};
+
+function parsePositiveInteger(value: string | undefined, fallback: number): number {
+  const parsed = Number.parseInt(value ?? "", 10);
+
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return parsed;
+  }
+
+  return fallback;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function getMemoryMode(): MemoryMode {
+  const fromEnv = process.env.VOCATAI_MEMORY_MODE?.trim().toLowerCase();
+
+  if (fromEnv === "recent" || fromEnv === "hybrid" || fromEnv === "full") {
+    return fromEnv;
+  }
+
+  return DEFAULT_MEMORY_MODE;
+}
+
+function getRecentWindowSize(): number {
+  return clamp(
+    parsePositiveInteger(process.env.VOCATAI_RECENT_WINDOW, DEFAULT_RECENT_WINDOW),
+    MIN_RECENT_WINDOW,
+    MAX_RECENT_WINDOW,
+  );
+}
+
+function getFullHistoryTriggerQuestion(): number {
+  return Math.max(
+    1,
+    parsePositiveInteger(
+      process.env.VOCATAI_FULL_HISTORY_TRIGGER_QUESTION,
+      DEFAULT_FULL_HISTORY_TRIGGER_QUESTION,
+    ),
+  );
+}
+
+function sanitizeWord(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function normalizeHistory(history: unknown): HistoryMessage[] {
+  if (!Array.isArray(history)) return [];
+
+  return history
+    .filter(
+      (msg): msg is HistoryMessage =>
+        typeof msg === "object" &&
+        msg !== null &&
+        "role" in msg &&
+        "content" in msg &&
+        (msg.role === "user" || msg.role === "assistant") &&
+        typeof msg.content === "string",
+    )
+    .map((msg) => ({
+      role: msg.role,
+      content: msg.content.trim(),
+    }))
+    .filter((msg) => msg.content.length > 0);
+}
+
+function detectConversationDrift(messages: HistoryMessage[]): boolean {
+  if (messages.length === 0) return false;
+
+  const recentUserMessages = messages
+    .filter((message) => message.role === "user")
+    .slice(-4)
+    .map((message) => sanitizeWord(message.content));
+
+  return recentUserMessages.some((message) =>
+    /(cambie de idea|ya no|ahora prefiero|antes.*ahora|no estoy seguro)/.test(message),
+  );
+}
+
+function extractTopKeywords(messages: HistoryMessage[]): string[] {
+  const frequencies = new Map<string, number>();
+
+  const userMessages = messages
+    .filter((message) => message.role === "user")
+    .map((message) => sanitizeWord(message.content));
+
+  for (const message of userMessages) {
+    const tokens = message.split(/[^a-z0-9]+/).filter((token) => token.length >= 4);
+
+    for (const token of tokens) {
+      if (SPANISH_STOPWORDS.has(token)) continue;
+
+      frequencies.set(token, (frequencies.get(token) ?? 0) + 1);
+    }
+  }
+
+  return Array.from(frequencies.entries())
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, MAX_KEYWORDS)
+    .map(([token]) => token);
+}
+
+function detectMentionedDomains(messages: HistoryMessage[]): (typeof VOCATIONAL_DOMAINS)[number][] {
+  const fullText = sanitizeWord(
+    messages
+      .filter((message) => message.role === "user")
+      .map((message) => message.content)
+      .join(" "),
+  );
+
+  return VOCATIONAL_DOMAINS.filter((domain) =>
+    DOMAIN_KEYWORDS[domain].some((keyword) => fullText.includes(keyword)),
+  );
+}
+
+function truncateMessage(content: string, maxLength: number): string {
+  if (content.length <= maxLength) return content;
+
+  return `${content.slice(0, maxLength - 1)}...`;
+}
+
+function shouldEscalateToFullHistory(
+  messages: HistoryMessage[],
+  currentQuestion: number,
+): boolean {
+  if (messages.length === 0) return false;
+
+  if (currentQuestion >= getFullHistoryTriggerQuestion()) return true;
+
+  return detectConversationDrift(messages);
+}
+
 export function getFallbackQuestionNumber(currentQuestion: unknown): number {
   if (typeof currentQuestion === "number" && Number.isFinite(currentQuestion)) {
     return Math.max(1, Math.floor(currentQuestion) + 1);
@@ -641,34 +844,99 @@ export function getFallbackQuestionNumber(currentQuestion: unknown): number {
 export function buildSystemWithContext(
   sentimentScore: number,
   questionNumber: number,
+  memoryContext?: string,
 ): string {
+  const memorySection = memoryContext
+    ? `\n\n[MEMORIA CONVERSACIONAL]\n${memoryContext}\nUsa esta memoria como referencia y prioriza coherencia con el mensaje reciente.`
+    : "";
+
   return (
     SYSTEM_PROMPT +
     `\n\n[CONTEXTO ACTUAL]\nScore de sentimiento detectado: ${sentimentScore}\nNúmero de interacción actual: ${questionNumber}` +
+    memorySection +
     `\n\n[CATALOGO RIASEC VERIFICADO - USO OBLIGATORIO PARA RECOMENDACIONES]\n${RIASEC_CATALOG}`
   );
 }
 
 export function getRecentHistory(
   history: unknown,
-): { role: "user" | "assistant"; content: string }[] {
-  if (!Array.isArray(history)) return [];
+  currentQuestion = 0,
+): HistoryMessage[] {
+  const messages = normalizeHistory(history);
+  const mode = getMemoryMode();
 
-  return history
-    .filter(
-      (msg): msg is { role: "user" | "assistant"; content: string } =>
-        typeof msg === "object" &&
-        msg !== null &&
-        "role" in msg &&
-        "content" in msg &&
-        (msg.role === "user" || msg.role === "assistant") &&
-        typeof msg.content === "string",
-    )
-    .slice(-5)
-    .map((msg) => ({
-      role: msg.role,
-      content: msg.content,
-    }));
+  if (mode === "full") return messages;
+
+  const recentWindow = getRecentWindowSize();
+
+  if (mode === "hybrid" && shouldEscalateToFullHistory(messages, currentQuestion)) {
+    return messages;
+  }
+
+  return messages.slice(-recentWindow);
+}
+
+export function buildConversationMemory(
+  history: unknown,
+  currentQuestion = 0,
+): string | null {
+  const messages = normalizeHistory(history);
+
+  if (messages.length === 0) return null;
+
+  const mode = getMemoryMode();
+
+  if (mode === "recent") {
+    return null;
+  }
+
+  const recentWindow = getRecentWindowSize();
+  const recentMessages = messages.slice(-recentWindow);
+  const olderMessages = messages.slice(0, Math.max(0, messages.length - recentWindow));
+
+  if (mode === "hybrid" && olderMessages.length === 0) {
+    return null;
+  }
+
+  const userTurns = messages.filter((message) => message.role === "user").length;
+  const keywords = extractTopKeywords(messages);
+  const detectedDomains = detectMentionedDomains(messages);
+  const driftDetected = detectConversationDrift(messages);
+  const lastUserMessage = [...messages]
+    .reverse()
+    .find((message) => message.role === "user")?.content;
+
+  const modeUsed =
+    mode === "hybrid" && shouldEscalateToFullHistory(messages, currentQuestion)
+      ? "hybrid-escalated"
+      : mode;
+
+  const lines = [
+    `modo_memoria: ${modeUsed}`,
+    `turnos_usuario: ${userTurns}`,
+    `interacciones_totales: ${messages.length}`,
+    `mensajes_previos_resumidos: ${Math.max(olderMessages.length, 0)}`,
+    `deriva_detectada: ${driftDetected ? "si" : "no"}`,
+  ];
+
+  if (keywords.length > 0) {
+    lines.push(`intereses_recurrentes: ${keywords.join(", ")}`);
+  }
+
+  if (detectedDomains.length > 0) {
+    lines.push(`dominios_mencionados: ${detectedDomains.join(", ")}`);
+  }
+
+  if (lastUserMessage) {
+    lines.push(
+      `ultimo_mensaje_usuario: "${truncateMessage(lastUserMessage, MAX_LAST_USER_MESSAGE_LENGTH)}"`,
+    );
+  }
+
+  const recentAssistantCount = recentMessages.filter((message) => message.role === "assistant").length;
+  lines.push(`mensajes_recientes_asistente: ${recentAssistantCount}`);
+
+  return lines.join("\n");
 }
 
 export const chatRequestInputSchema = z.object({

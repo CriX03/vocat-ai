@@ -1,6 +1,7 @@
 import { generateObject } from "ai";
 import { NextResponse } from "next/server";
 import {
+  buildConversationMemory,
   buildSystemWithContext,
   chatResponseSchema,
   createFallbackResponse,
@@ -112,14 +113,18 @@ export async function POST(request: Request) {
     // ── 1. Análisis de sentimiento local (antes del LLM) ──
     const sentiment = analyzeSentiment(message);
 
+    // ── 1.1 Memoria conversacional híbrida (recencia + resumen) ──
+    const memoryContext = buildConversationMemory(history, fallbackQuestion);
+
     // ── 2. Construir prompt con score inyectado ──
     const systemWithContext = buildSystemWithContext(
       sentiment.score,
       fallbackQuestion,
+      memoryContext ?? undefined,
     );
 
     // ── 3. Limitar contexto a los últimos 5 mensajes (protocolo §4.3) ──
-    const recentHistory = getRecentHistory(history);
+    const recentHistory = getRecentHistory(history, fallbackQuestion);
 
     const responseObject = await generateWithFallbackModel(systemWithContext, [
       ...recentHistory,

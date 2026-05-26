@@ -1,6 +1,7 @@
 import { generateObject } from "ai";
 import { NextResponse } from "next/server";
 import {
+  buildConversationMemory,
   buildSystemWithContext,
   chatResponseSchema,
   createFallbackResponse,
@@ -107,12 +108,15 @@ export async function POST(request: Request) {
 
     const sentiment = analyzeSentiment(message);
 
+    const memoryContext = buildConversationMemory(history, fallbackQuestion);
+
     const systemWithContext = buildSystemWithContext(
       sentiment.score,
       fallbackQuestion,
+      memoryContext ?? undefined,
     );
 
-    const recentHistory = getRecentHistory(history);
+    const recentHistory = getRecentHistory(history, fallbackQuestion);
 
     const responseObject = await generateWithFallbackModel(systemWithContext, [
       ...recentHistory,
