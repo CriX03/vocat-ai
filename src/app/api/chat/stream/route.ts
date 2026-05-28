@@ -12,6 +12,7 @@ import { analyzeSentiment } from "@/lib/sentiment-analysis";
 
 export async function POST(request: Request) {
   let fallbackQuestion = 1;
+  const modelName = process.env.AI_MODEL?.trim() || "openai/gpt-4.1-mini";
 
   try {
     const body: ChatRequestBody = await request.json();
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
 
     const result = await streamObject({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      model: "openai/gpt-5.5" as any,
+      model: modelName as any,
       system: systemWithContext,
       messages: [...recentHistory, { role: "user", content: message }],
       schema: chatResponseSchema,
