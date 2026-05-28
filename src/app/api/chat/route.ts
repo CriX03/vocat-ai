@@ -16,7 +16,7 @@ import { analyzeSentiment } from "@/lib/sentiment-analysis";
 
 export async function POST(request: Request) {
   let fallbackQuestion = 1;
-  const modelName = process.env.AI_MODEL?.trim() || "openai/gpt-4.1-mini";
+  const modelName = process.env.AI_MODEL?.trim() || "openai/gpt-4o";
 
   try {
     const body: ChatRequestBody = await request.json();
